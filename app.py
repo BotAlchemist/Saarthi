@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 st.set_page_config(layout="wide")
 
-os.environ["OPENAI_API_KEY"]= openai_token
+os.environ["OPENAI_API_KEY"]= st.secrets["api_token"]
 client = OpenAI()
 
 
