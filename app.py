@@ -14,6 +14,7 @@ st.set_page_config(layout="wide")
 
 i_openai_key = st.sidebar.text_input("OpenAI key", type='password')
 if len(i_openai_key) > 0:
+    os.environ["OPENAI_API_KEY"]= i_openai_key
     client = OpenAI()
     
     
