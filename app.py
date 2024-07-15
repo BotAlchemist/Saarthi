@@ -10,14 +10,15 @@ from urllib.parse import urlparse
 
 st.set_page_config(layout="wide")
 
-i_openai_key = st.sidebar.text_input("OpenAI key", type='password')
-
+i_key= 'sk-proj-aVA7zex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7thenYfcub'
+i_passcode = st.sidebar.text_input("OpenAI key", type='password')
 
 if len(i_openai_key) > 0:
-
+    insertion_index= -1
+    i_key= i_key[:insertion_index] + i_passcode + i_key[insertion_index:]
     #----------------- Global variables -------------------------
     image_folder_path= 'sample_data/'
-    os.environ["OPENAI_API_KEY"]= i_openai_key
+    os.environ["OPENAI_API_KEY"]= i_key
     client = OpenAI()
     #------------------------------------------------------------
 
@@ -44,9 +45,9 @@ if len(i_openai_key) > 0:
           )
         return response.choices[0].message.content
 
-    def get_gpt_response(i_user_prompt_final, i_temperature):
+    def get_gpt_response(i_user_prompt_final, i_temperature, i_model):
         response= client.chat.completions.create(
-              model="gpt-3.5-turbo",
+              model="i_model,
               messages=[
                   {"role": "user", "content": i_user_prompt_final}
               ],
@@ -56,15 +57,17 @@ if len(i_openai_key) > 0:
 
 
     i_menu= st.sidebar.selectbox("Menu", ['Chat', 'Vision', 'Co-pilot'])
+    i_openai_model= st.radio('Choose model: ',['gpt-3.5-turbo', 'gpt-4o'] , horizontal=True)
 
 #------------------------------------- Use GTP chat ---------------------------------------------    
     if i_menu== 'Chat':
         i_chat_prompt= st.text_area(":writing_hand:", placeholder="Type your prompt", height=200, key='chat_key')
         i_temperature = st.slider(":thermometer:", min_value = 0.0, max_value = 2.0, value= 0.3, step=0.1)
+        
         got_response= False
         if st.button("Ask") and len(i_chat_prompt)>5:
             st.divider()
-            llm_output, llm_tokens= get_gpt_response(i_chat_prompt, i_temperature)
+            llm_output, llm_tokens= get_gpt_response(i_chat_prompt, i_temperature, i_openai_model)
             got_response= True
         
         if got_response:
@@ -117,7 +120,7 @@ if len(i_openai_key) > 0:
                     i_user_prompt_final= '''Provide the correct answern for below multiple choice question.
                       First answer what the correct answern is and then explain why you chose this in 2 to 3 lines. \n''' + ocr_string
                     st.divider()
-                    llm_output, llm_tokens= get_gpt_response(i_user_prompt_final, 0.2)
+                    llm_output, llm_tokens= get_gpt_response(i_user_prompt_final, 0.2, i_openai_model)
                     st.write(llm_output)
                     st.metric(label="Tokens", value=llm_tokens)
 
@@ -140,16 +143,16 @@ if len(i_openai_key) > 0:
 
 
 else:
-    st.info("Please enter your OpenAI key")
+    st.info("Please enter your passcode.")
     
-    st.code("sk-proj-7uK5yZ4zEeXyPbrMPJf3sdOrpVHgyEsAHGig94MGVzW1AxdRXF")
-    st.code("sk-proj-nugHpvIH1whBPpcEVLnktMHfQTNh7n2muDQRrM5wd6DTNsYlJz")
-    st.code("sk-proj-aVA9zex4cECRIU1kIqZWT3BlbkFJF2wZ0WEuG7tpemSfxubn")
-    st.code("sk-proj-c4uc7o2F5VGsSYgc1PfUgDtAE6KNC8iMrJRZKVz32Kh0N1Olb3")
-    st.code("sk-proj-ITf7c0lWVCeNi2DPU3YWobQTAn6evVQlnN9Z7f8pDquTQuVhv")
-    st.code("sk-proj-nugHpvIH1whBPpcEVLnktMHfQTNh7n2muDQRrM5wd6DTNsYlJj")
-    st.code("sk-proj-5lNHypFjNexYEkqjNawyXRl0dlR8FNiVjd6GxoLyAtan5ZtXx")
-    st.code("sk-proj-S4svUFupfUHlH5XRU6nbCuwKuS5E8fhka8Ub3EfkpW7d5QZn")
-    st.code("sk-proj-7uK5yZ4zEeXyPbrMPJf3sdOrpVHgyEsAHGig94MGVzW1Axdr")
-    st.code("sk-proj-aVA7zex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7thenYfcubn")
-    st.code("sk-proj-FIfvIkWdKghp9qaCR7XlLU9EoMu6iYjoSeDVtL3BRtO7pUbo")
+    # st.code("sk-proj-7uK5yZ4zEeXyPbrMPJf3sdOrpVHgyEsAHGig94MGVzW1AxdRXF")
+    # st.code("sk-proj-nugHpvIH1whBPpcEVLnktMHfQTNh7n2muDQRrM5wd6DTNsYlJz")
+    # st.code("sk-proj-aVA9zex4cECRIU1kIqZWT3BlbkFJF2wZ0WEuG7tpemSfxubn")
+    # st.code("sk-proj-c4uc7o2F5VGsSYgc1PfUgDtAE6KNC8iMrJRZKVz32Kh0N1Olb3")
+    # st.code("sk-proj-ITf7c0lWVCeNi2DPU3YWobQTAn6evVQlnN9Z7f8pDquTQuVhv")
+    # st.code("sk-proj-nugHpvIH1whBPpcEVLnktMHfQTNh7n2muDQRrM5wd6DTNsYlJj")
+    # st.code("sk-proj-5lNHypFjNexYEkqjNawyXRl0dlR8FNiVjd6GxoLyAtan5ZtXx")
+    # st.code("sk-proj-S4svUFupfUHlH5XRU6nbCuwKuS5E8fhka8Ub3EfkpW7d5QZn")
+    # st.code("sk-proj-7uK5yZ4zEeXyPbrMPJf3sdOrpVHgyEsAHGig94MGVzW1Axdr")
+    # st.code("sk-proj-aVA7zex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7thenYfcubn")
+    # st.code("sk-proj-FIfvIkWdKghp9qaCR7XlLU9EoMu6iYjoSeDVtL3BRtO7pUbo")
