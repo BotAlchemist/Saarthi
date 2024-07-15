@@ -13,7 +13,7 @@ st.set_page_config(layout="wide")
 i_key= 'sk-proj-aVA7zex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7thenYfcub'
 i_passcode = st.sidebar.text_input("OpenAI key", type='password')
 
-if len(i_openai_key) > 0:
+if len(i_passcode) > 0:
     insertion_index= -1
     i_key= i_key[:insertion_index] + i_passcode + i_key[insertion_index:]
     #----------------- Global variables -------------------------
