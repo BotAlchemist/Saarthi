@@ -47,7 +47,7 @@ if len(i_openai_key) > 0:
 
     def get_gpt_response(i_user_prompt_final, i_temperature, i_model):
         response= client.chat.completions.create(
-              model="i_model,
+              model=i_model,
               messages=[
                   {"role": "user", "content": i_user_prompt_final}
               ],
