@@ -10,12 +10,14 @@ from urllib.parse import urlparse
 
 st.set_page_config(layout="wide")
 
-i_key= 'sk-proj-aVAzex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7themYfcubn'
+#i_key= 'sk-proj-aVAzex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7themYfcubn'
+i_key= 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426H'
 i_passcode = st.sidebar.text_input("OpenAI key", type='password')
 
 if len(i_passcode) > 0:
-    insertion_index= 11
-    i_key= i_key[:insertion_index] + i_passcode + i_key[insertion_index:]
+    #insertion_index= 11
+    #i_key= i_key[:insertion_index] + i_passcode + i_key[insertion_index:]
+    i_key = i_key + i_passcode
     #----------------- Global variables -------------------------
     image_folder_path= 'sample_data/'
     os.environ["OPENAI_API_KEY"]= i_key
