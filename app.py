@@ -30,7 +30,7 @@ if len(i_passcode) > 0:
 
     def extract_text_from_image(i_user_prompt, image_url ):
         response = client.chat.completions.create(
-              model='gpt-4-vision-preview',
+              model='gpt-4o',
               messages=[
                   {
                       "role": "user",
