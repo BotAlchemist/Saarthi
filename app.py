@@ -7,6 +7,7 @@ import base64
 import json
 import os
 from urllib.parse import urlparse
+from audiorecorder import audiorecorder
 
 st.set_page_config(layout="wide")
 
@@ -58,7 +59,7 @@ if len(i_passcode) > 0:
         return response.choices[0].message.content, response.usage.total_tokens
 
 
-    i_menu= st.sidebar.selectbox("Menu", ['Chat', 'Vision', 'Co-pilot'])
+    i_menu= st.sidebar.selectbox("Menu", ['Chat', 'Vision', 'Audio', 'Co-pilot'])
     i_openai_model= st.radio('Choose model: ',['gpt-3.5-turbo', 'gpt-4o'] , horizontal=True)
 
 #------------------------------------- Use GTP chat ---------------------------------------------    
@@ -76,6 +77,58 @@ if len(i_passcode) > 0:
             st.write(llm_output)
             st.divider()
             st.metric(label="Tokens", value=llm_tokens)
+
+#-------------------------------------- Use Whisper
+    elif i_menu== 'Audio':
+        st.title("Record audio")
+        audio = audiorecorder("Click to record", "Click to stop recording")
+        
+        if len(audio) > 0:
+            # To play audio in frontend:
+            st.audio(audio.export().read())
+        
+            # To save audio to a file, use pydub export method:
+            audio.export("audio.wav", format="wav")
+        
+            # To get audio properties, use pydub AudioSegment properties:
+            st.write(f"Frame rate: {audio.frame_rate}, Frame width: {audio.frame_width}, Duration: {audio.duration_seconds} seconds")
+        
+            client = OpenAI()
+        
+            audio_file= open("audio.wav", "rb")
+            transcription = client.audio.transcriptions.create(
+              model="whisper-1",
+              file=audio_file
+            )
+            st.divider()
+            st.write(transcription.text)
+        
+            i_user_prompt= transcription.text
+        
+            i_chat_prompt= st.text_area(":writing_hand:",value= "You are a helpful assistant. First identify the language in which the speaker is speaking then simply translate the text in English.", placeholder="Type your prompt", height=200, key='chat_key')
+            response= client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": i_chat_prompt},
+                    {"role": "user", "content": i_user_prompt}
+                ]
+            )
+        
+            if st.button("Submit"):
+              st.divider()
+              st.write(response.choices[0].message.content)
+        
+              st.divider()
+              st.write('Total tokens used: '+ str(response.usage.total_tokens))
+        
+        # Add a button to delete the audio file
+        if st.button("Reset audio file"):
+            if os.path.exists("audio.wav"):
+                os.remove("audio.wav")
+                st.success("Audio is reset.")
+            else:
+                st.warning("Audio does not exist")
+    
     
 
 #------------------------------------- Use GTP vision ---------------------------------------------
