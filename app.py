@@ -1,213 +1,323 @@
-import streamlit as st  #Web App
-from PIL import Image #Image Processing
-import numpy as np #Image Processing
-from openai import OpenAI
-#import openai
+# Import necessary libraries
+import streamlit as st  # Web App framework
+import pandas as pd  # Data manipulation
+from PIL import Image  # Image processing
+import numpy as np  # Numerical operations
+from openai import OpenAI  # OpenAI API
+import openai
 import base64
 import json
 import os
+import base64
 from urllib.parse import urlparse
-from audiorecorder import audiorecorder
+from audiorecorder import audiorecorder  # Audio recording
+from datetime import datetime  # Date and time operations
 
+# Set Streamlit page configuration
 st.set_page_config(layout="wide")
 
-#i_key= 'sk-proj-aVAzex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7themYfcubn'
-i_key= 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426H'
+@st.cache_data(show_spinner=False)
+def load_data():
+  return pd.read_csv(FILE_PATH)
+
+FILE_PATH = '/content/drive/MyDrive/Saarthi/Kuber/Saarthi_Kuber.csv'
+
+# Initialize OpenAI API key and passcode
+i_key = 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426H'
 i_passcode = st.sidebar.text_input("OpenAI key", type='password')
 
-if len(i_passcode) > 0:
-    #insertion_index= 11
-    #i_key= i_key[:insertion_index] + i_passcode + i_key[insertion_index:]
-    i_key = i_key + i_passcode
-    #----------------- Global variables -------------------------
-    image_folder_path= 'sample_data/'
-    os.environ["OPENAI_API_KEY"]= i_key
-    client = OpenAI()
-    #------------------------------------------------------------
+# Define categories and types for expenses
+category_list = ['Fruit and Vegetable', 'Dairy', 'Meat and Egg', 'Grocery', 'Gas', 'Driver', 'Bills', 'House', 'EMI', 'Entertainment', 'Travel', 'Food and Snacks', 'Healthcare', 'Education', 'Personal Care', 'Savings', 'Miscellaneous']
+type_list = ['Needs', 'Wants', 'Savings', 'Loan repayment']
 
-    def encode_image(image_path):
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
+# Define the prompt for OpenAI API
+i_prompt = ''' You are to return a json string extracting information from the provided context. Ensure there is no extra data or characters before or after the JSON object that might be causing the parser to fail."
 
-    def extract_text_from_image(i_user_prompt, image_url ):
-        response = client.chat.completions.create(
-              model='gpt-4o',
-              messages=[
-                  {
-                      "role": "user",
-                      "content": [
-                          {"type": "text", "text": i_user_prompt},
-                          {
-                              "type": "image_url",
-                              "image_url": {"url": image_url}
-                          }
-                      ],
-                  }
-              ],
-              max_tokens=1000,
-          )
-        return response.choices[0].message.content
+{"Date":,
+  "Item": ,
+  "Category": ,
+  "Amount": ,
+  "Quantity": ,
+  "Unit": ,
+  "CostPerQuantity": ,
+  "Type": ,
+  "Comment":}
 
-    def get_gpt_response(i_user_prompt_final, i_temperature, i_model):
-        response= client.chat.completions.create(
-              model=i_model,
-              messages=[
-                  {"role": "user", "content": i_user_prompt_final}
-              ],
-              temperature=i_temperature
-          )
-        return response.choices[0].message.content, response.usage.total_tokens
+guildelines:
+Everything should be in English language.
+Date in DD-MM-YYYY format.
+Extract item, amount, quantity, from context provided.
+Identify which category Item belongs to from the list:
+'Fruit and Vegetable', 'Dairy', 'Meat and Egg', 'Grocery', 'Gas', 'Driver', 'Bills', 'House', 'EMI', 'Entertainment', 'Travel', 'Food and Snacks', 'Healthcare', 'Education', 'Personal Care', 'Savings', 'Miscellaneous'.
 
 
-    i_menu= st.sidebar.selectbox("Menu", ['Chat', 'Vision', 'Audio', 'Co-pilot'])
-    i_openai_model= st.radio('Choose model: ',['gpt-3.5-turbo', 'gpt-4o'] , horizontal=True)
+Quantity should only have integer value like : 10, 200 etc
+identify unit from the context. Can have values like : "gm", "kg", "nos" (if in quantity number).
+Calculate cost per quantity in gram/price, litre/price and quantity/price. if unit is kg, always convert to gm first.
+Type: 'Needs', 'Wants', 'Savings', 'Loan repayment'.
+Comment: if any, else write 'N/A'
 
-#------------------------------------- Use GTP chat ---------------------------------------------    
-    if i_menu== 'Chat':
-        i_chat_prompt= st.text_area(":writing_hand:", placeholder="Type your prompt", height=200, key='chat_key')
-        i_temperature = st.slider(":thermometer:", min_value = 0.0, max_value = 2.0, value= 0.3, step=0.1)
-        
-        got_response= False
-        if st.button("Ask") and len(i_chat_prompt)>5:
-            st.divider()
-            llm_output, llm_tokens= get_gpt_response(i_chat_prompt, i_temperature, i_openai_model)
-            got_response= True
-        
-        if got_response:
-            st.write(llm_output)
-            st.divider()
-            st.metric(label="Tokens", value=llm_tokens)
+Sample example:
+Context: Carrot 200 gm , 500 Rs.
 
-#-------------------------------------- Use Whisper
-    elif i_menu== 'Audio':
-        st.title("Record audio")
-        audio = audiorecorder("Click to record", "Click to stop recording")
-        
-        if len(audio) > 0:
-            # To play audio in frontend:
-            st.audio(audio.export().read())
-        
-            # To save audio to a file, use pydub export method:
-            audio.export("audio.wav", format="wav")
-        
-            # To get audio properties, use pydub AudioSegment properties:
-            st.write(f"Frame rate: {audio.frame_rate}, Frame width: {audio.frame_width}, Duration: {audio.duration_seconds} seconds")
-        
-            client = OpenAI()
-        
-            audio_file= open("audio.wav", "rb")
-            transcription = client.audio.transcriptions.create(
-              model="whisper-1",
-              file=audio_file
+{"Date": "12-05-2025",
+  "Item": "Carrot",
+  "Category": "Vegetable",
+  "Amount": 500,
+  "Quantity": 200,
+  "Unit": "gm",
+  "CostPerQuantity": 2.5,
+  "Type": "Needs",
+  "Comment": "N/A"}
+'''
+
+
+# ------------------------------------------------------ Function definition
+def fetch_audio(audio):
+  # Save audio to a file
+  audio.export("audio.wav", format="wav")
+
+  # Initialize OpenAI client
+  client = OpenAI()
+
+  # Open and transcribe the audio file
+  audio_file = open("audio.wav", "rb")
+  transcription = client.audio.transcriptions.create(
+      model="whisper-1",
+      file=audio_file
+  )
+
+  return transcription.text
+
+# Function to return AI voice
+def ai_voice(i_text_input):
+  text_input = i_text_input
+
+  voice = "shimmer"  #st.selectbox("Choose a voice", ["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
+  model = "tts-1"  #st.selectbox("Choose quality", ["tts-1", "tts-1-hd"])
+
+  response = openai.audio.speech.create(
+                model=model,
+                voice=voice,
+                input=text_input
             )
-            st.divider()
-            st.write(transcription.text)
-        
-            i_user_prompt= transcription.text
-        
-            i_chat_prompt= st.text_area(":writing_hand:",value= "You are a helpful assistant. First identify the language in which the speaker is speaking then simply translate the text in English.", placeholder="Type your prompt", height=200, key='chat_key')
-            response= client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": i_chat_prompt},
-                    {"role": "user", "content": i_user_prompt}
-                ]
-            )
-        
-            if st.button("Submit"):
-              st.divider()
-              st.write(response.choices[0].message.content)
-        
-              st.divider()
-              st.write('Total tokens used: '+ str(response.usage.total_tokens))
-        
-        # Add a button to delete the audio file
-        if st.button("Reset audio file"):
-            if os.path.exists("audio.wav"):
-                os.remove("audio.wav")
-                st.success("Audio is reset.")
-            else:
-                st.warning("Audio does not exist")
-    
-    
 
-#------------------------------------- Use GTP vision ---------------------------------------------
-    elif i_menu== 'Vision':   
-        i_input_type= st.selectbox('Choose task:', ["Open camera", "Upload image"])
+  # Save to temporary audio file
+  audio_path = "ai_voice.mp3"
+  with open(audio_path, "wb") as f:
+    f.write(response.content)
 
-        if i_input_type == "Open camera":
-            i_prompt_template= st.selectbox("Choose prompt", ["Answer","Label", "None"])
-            if i_prompt_template == "Answer":
-                i_mcq_type= st.radio("Choose MCQ type", ["Single", "Multiple"], horizontal=True)
+  # Read and encode to base64
+  with open(audio_path, "rb") as f:
+      audio_bytes = f.read()
+      b64 = base64.b64encode(audio_bytes).decode()
 
-                i_user_prompt= '''Extract all text from the images. The image contains text in the form of multiple choice questions.
-                Ignore any watermarks. Format the output in the form of multiple choice questions.
-                provide suitable line breaks with numbering if any.'''
-
-                if i_mcq_type == "Single":
-                    i_user_prompt+= "\n Each question can have only one answer."
-                elif i_mcq_type == "Multiple":
-                    i_user_prompt+= "\n Each question can have multiple answers."
-
-            elif i_prompt_template == "None":
-                i_user_prompt= st.text_area("Type your prompt", "")
-
-            elif i_prompt_template == "Label":
-                i_user_prompt= '''You are provided with a image of product with its labels and ingredients list.
-                Your goal is to extract all texts from labels, ingredients or nutrition facts..
-               
-                If the image doesnot contain any labels or ingredients, provide a response: "Image does not contain necessary details".
-                '''
-
-            image_local = st.camera_input("Take a picture")
-            if image_local and len(i_user_prompt)>5:
-                with open(os.path.join(image_folder_path,"test.jpg"),"wb") as f:
-                    f.write(image_local.getbuffer())
-
-                image_local_temp = os.path.join(image_folder_path,"test.jpg")
-                image_url = f"data:image/jpeg;base64,{encode_image(image_local_temp)}"
-
-                #st.write(i_user_prompt)
-                ocr_string = extract_text_from_image(i_user_prompt, image_url )
-                st.write(ocr_string)
-
-                if i_prompt_template == "Answer":
-                    i_user_prompt_final= '''Provide the correct answern for below multiple choice question.
-                      First answer what the correct answern is and then explain why you chose this in 2 to 3 lines. \n''' + ocr_string
-                    st.divider()
-                    llm_output, llm_tokens= get_gpt_response(i_user_prompt_final, 0.2, i_openai_model)
-                    st.write(llm_output)
-                    st.metric(label="Tokens", value=llm_tokens)
-
-                elif i_prompt_template == "Label":
-                    i_user_prompt_final=''' You are an expert nutritionist.
-                    Carefully analyze  all the labels and ingredients.
-                    Provide the list of ingredients along with a line of what the ingredient is.
-                    Provide a brief summary of the extracted label information, highlighting the key details.
-                    Focus more on the additives, preservatives, artificial colors or flavors or any harmful substances present.
-                    ''' + ocr_string
-
-                    st.divider()
-                    llm_output, llm_tokens= get_gpt_response(i_user_prompt_final, 0.3)
-                    st.write(llm_output)
-                    st.metric(label="Tokens", value=llm_tokens)
-
-                    
+  # Embed autoplay audio in HTML
+  st.markdown(
+      f"""
+      <audio autoplay controls>
+          <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+          Your browser does not support the audio element.
+      </audio>
+      """,
+      unsafe_allow_html=True
+  )
 
 
-
-
+# Check if OpenAI passcode is entered
+if len(i_passcode) <= 0:
+    st.info("Please enter your OpenAI key")
 else:
-    st.info("Please enter your passcode.")
-    
-    # st.code("sk-proj-7uK5yZ4zEeXyPbrMPJf3sdOrpVHgyEsAHGig94MGVzW1AxdRXF")
-    # st.code("sk-proj-nugHpvIH1whBPpcEVLnktMHfQTNh7n2muDQRrM5wd6DTNsYlJz")
-    # st.code("sk-proj-aVA9zex4cECRIU1kIqZWT3BlbkFJF2wZ0WEuG7tpemSfxubn")
-    # st.code("sk-proj-c4uc7o2F5VGsSYgc1PfUgDtAE6KNC8iMrJRZKVz32Kh0N1Olb3")
-    # st.code("sk-proj-ITf7c0lWVCeNi2DPU3YWobQTAn6evVQlnN9Z7f8pDquTQuVhv")
-    # st.code("sk-proj-nugHpvIH1whBPpcEVLnktMHfQTNh7n2muDQRrM5wd6DTNsYlJj")
-    # st.code("sk-proj-5lNHypFjNexYEkqjNawyXRl0dlR8FNiVjd6GxoLyAtan5ZtXx")
-    # st.code("sk-proj-S4svUFupfUHlH5XRU6nbCuwKuS5E8fhka8Ub3EfkpW7d5QZn")
-    # st.code("sk-proj-7uK5yZ4zEeXyPbrMPJf3sdOrpVHgyEsAHGig94MGVzW1Axdr")
-    # st.code("sk-proj-aVA7zex4cFCRIU0kIqZWT3BlbkFJF2wZ0WEuG7thenYfcubn")
-    # st.code("sk-proj-FIfvIkWdKghp9qaCR7XlLU9EoMu6iYjoSeDVtL3BRtO7pUbo")
+    # Combine base key with the user-provided passcode
+    i_key = i_key + i_passcode
+
+    # Set OpenAI API key in environment
+    os.environ["OPENAI_API_KEY"] = i_key
+    client = OpenAI()
+
+    i_menu_option= st.sidebar.selectbox('Menu', ['Add expense',  'Analyse' , 'Edit sheet'])
+
+    #---------------------------- Add Expense option -----------------------------
+    if i_menu_option== 'Add expense':
+      # Streamlit UI for recording audio
+      st.markdown("### Say something!")
+      audio = audiorecorder("Click to record", "Click to stop recording")
+
+      # Process audio if recorded
+      if len(audio) > 0:
+          i_context= fetch_audio(audio)
+
+          st.divider()
+
+          # Display transcribed text
+          st.write(i_context)
+
+          # Prepare the context and prompt for OpenAI API
+
+          i_final_prompt = '''Context: {}'''.format(i_context)
+          i_final_prompt += '''Date: {}'''.format(datetime.now())
+          i_final_prompt += i_prompt
+
+          # Define chat prompt for OpenAI API
+          i_chat_prompt = '''You are a helpful financial advisor/assistant for Indian household. Only generate the json object and not any explanation. '''
+          response = client.chat.completions.create(
+              model="gpt-4o",
+              messages=[
+                  {"role": "system", "content": i_chat_prompt},
+                  {"role": "user", "content": i_final_prompt}
+              ]
+          )
+
+          # Extract and clean the response
+          i_response = str(response.choices[0].message.content).replace('''```json''', '').replace('''```''', '')
+          new_expense = json.loads(i_response)
+
+          # Create editable fields for each key in the dictionary
+          editable_expense = {}
+
+          # Get the current date
+          current_date = datetime.now().date()
+
+          # Create input fields for each key in the expense dictionary
+          for key, value in new_expense.items():
+              if key == 'Date':
+                  editable_expense[key] = st.date_input(f"{key}:", value=current_date)
+              elif key in ['Item', 'Unit', 'Comment']:
+                  editable_expense[key] = st.text_input(f"{key}:", value=value)
+              elif key == 'Category':
+                  if value not in category_list:
+                      category_list.append(value)
+                  editable_expense[key] = st.selectbox(f"{key}:", options=category_list, index=category_list.index(value))
+              elif key in ['Amount', 'Quantity', 'CostPerQuantity']:
+                  editable_expense[key] = st.number_input(f"{key}:", value=value)
+              elif key == 'Type':
+                  if value not in type_list:
+                      type_list.append(value)
+                  editable_expense[key] = st.selectbox(f"{key}:", options=type_list, index=type_list.index(value))
+              else:
+                  pass
+
+          # Display the editable dictionary
+          st.write('Extracted values')
+
+          # Convert the editable dictionary to a DataFrame
+          editable_expense_record = pd.DataFrame([editable_expense])
+          st.write(editable_expense_record)
+
+          # Button to add expense to CSV
+          if st.button('Add Expense'):
+              # Append the new record DataFrame to the CSV
+              editable_expense_record.to_csv(FILE_PATH, mode='a', header=False, index=False)
+              #st.success('Expense Added!')
+              ai_voice("'Expense Added!'")
+
+    #---------------------------- Edit sheet option -----------------------------
+    elif i_menu_option== 'Edit sheet':
+      df= pd.read_csv(FILE_PATH)
+      #st.write(df)
+
+      # Show editable table
+      edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
+
+      # Button to save changes
+      if st.button("Save Changes to CSV"):
+          edited_df.to_csv(FILE_PATH, index=False)
+          st.success("Changes saved successfully!")
+
+    #---------------------------- Analyse option -----------------------------
+    elif i_menu_option== 'Analyse':
+
+      if st.button("🔄 Refresh Data"):
+        st.cache_data.clear()
+
+
+
+
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+
+      # Load your expense data
+      df = load_data()
+      df["Date"] = pd.to_datetime(df["Date"])
+
+
+      st.markdown("Analyze your expenses deeply with smart visuals and KPIs 👇")
+
+      # ---- FILTERS ----
+      st.sidebar.header("🔎 Filter Your Data")
+
+      # Category filter
+      all_categories = df["Category"].unique().tolist()
+      selected_categories = st.sidebar.multiselect("Select Category", options=all_categories, default=all_categories)
+
+      # # Date filter
+      # min_date = df["Date"].min()
+      # max_date = df["Date"].max()
+      # selected_date = st.sidebar.slider("Select Date Range", min_value=min_date, max_value=max_date, value=(min_date, max_date))
+
+      # Apply filters
+      filtered_df = df[df["Category"].isin(selected_categories)]
+
+      # ---- KPI SECTION ----
+      st.subheader("📌 Key Performance Indicators")
+      col1, col2, col3, col4 = st.columns(4)
+
+      with col1:
+          st.metric("Total Expense", f"₹ {filtered_df['Amount'].sum():,.2f}")
+      with col2:
+          st.metric("Average Daily Spend", f"₹ {filtered_df.groupby('Date')['Amount'].sum().mean():.2f}")
+      with col3:
+          top_cat = filtered_df.groupby("Category")["Amount"].sum()
+          st.metric("Top Spending Category", top_cat.idxmax() if not top_cat.empty else "N/A")
+      with col4:
+          needs_sum = filtered_df[filtered_df["Type"] == "Needs"]["Amount"].sum()
+          wants_sum = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum() if "Wants" in filtered_df["Type"].unique() else 0
+          st.metric("Needs vs Wants (₹)", f"{needs_sum:.0f} / {wants_sum:.0f}")
+
+      # ---- TIME TREND ----
+      st.subheader("📈 Monthly Spending Trend")
+      df_monthly = filtered_df.groupby(filtered_df["Date"].dt.to_period("M"))['Amount'].sum().reset_index()
+      df_monthly['Date'] = df_monthly['Date'].dt.to_timestamp()
+      st.line_chart(df_monthly.set_index("Date"))
+
+      # ---- CATEGORY BREAKDOWN ----
+      st.subheader("📊 Spending by Category")
+      category_totals = filtered_df.groupby("Category")["Amount"].sum().sort_values(ascending=False)
+      st.bar_chart(category_totals)
+
+      # ---- TYPE BY MONTH ----
+      st.subheader("📆 Monthly Expense by Type")
+      df_type_month = filtered_df.copy()
+      df_type_month["Month"] = df_type_month["Date"].dt.to_period("M").dt.to_timestamp()
+      df_grouped = df_type_month.groupby(["Month", "Type"])["Amount"].sum().unstack().fillna(0)
+      st.bar_chart(df_grouped)
+
+      # ---- TOP ITEMS ----
+      st.subheader("🥇 Top 10 Items by Spend")
+      top_items = filtered_df.groupby("Item")["Amount"].sum().sort_values(ascending=False).head(10)
+      st.bar_chart(top_items)
+
+      # ---- COST EFFICIENCY ----
+      st.subheader("⚖️ Cost Efficiency (₹ per Unit)")
+      avg_cost = filtered_df.groupby("Item")["CostPerQuantity"].mean().sort_values(ascending=False)
+      fig1, ax1 = plt.subplots(figsize=(8, 4))
+      sns.barplot(x=avg_cost.values, y=avg_cost.index, ax=ax1)
+      ax1.set_xlabel("₹ per Unit")
+      st.pyplot(fig1)
+
+      # ---- NEEDS VS WANTS ----
+      st.subheader("🔍 Needs vs Wants Spending")
+      type_summary = filtered_df.groupby("Type")["Amount"].sum()
+      st.bar_chart(type_summary)
+
+      # ---- WEEKDAY SPENDING ----
+      st.subheader("📅 Average Spending by Day of Week")
+      filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
+      weekday_avg = filtered_df.groupby("Weekday")["Amount"].mean().reindex(
+          ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+      st.bar_chart(weekday_avg)
+
+
+      st.markdown("---")
+      st.caption("Built with ❤️ by SAARTHI-Kuber")
+
