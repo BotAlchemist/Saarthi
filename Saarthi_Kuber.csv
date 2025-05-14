@@ -1,0 +1,52 @@
+Date,Item,Category,Amount,Quantity,Unit,CostPerQuantity,Type,Comment
+2025-05-12,Carrot,Fruit and Vegetable,22.0,500,gm,0.044,Needs,
+2025-05-12,Tomato,Fruit and Vegetable,1.0,500,gm,0.002,Needs,
+2025-05-12,Ginger,Fruit and Vegetable,10.0,100,gm,0.1,Needs,
+2025-05-12,Beetroot,Fruit and Vegetable,11.0,250,gm,0.044,Needs,
+2025-05-12,Capsicum,Fruit and Vegetable,17.0,250,gm,0.068,Needs,
+2025-05-12,Cabbage,Fruit and Vegetable,2.0,450,gm,0.0044,Needs,
+2025-05-12,Pumpkin,Fruit and Vegetable,45.0,500,gm,0.09,Needs,
+2025-05-12,Raw Mango,Fruit and Vegetable,45.0,500,gm,0.09,Needs,
+2025-05-12,Onion,Fruit and Vegetable,22.0,1000,gm,0.022,Needs,
+2025-05-12,Potato,Fruit and Vegetable,32.0,1000,gm,0.032,Needs,
+2025-05-12,Betel leaves,Food and Snacks,25.0,5,nos,5.0,Wants,Blinkit
+2025-05-12,Bread,Grocery,40.0,350,gm,0.114,Needs,Blinkit
+2025-05-12,Coriander,Fruit and Vegetable,15.0,100,gm,0.15,Needs,Blinkit
+2025-05-12,Sunflower Oil,Grocery,159.0,870,gm,0.183,Needs,Blinkit
+2025-05-12,Namkeen Combo,Food and Snacks,86.0,1,nos,86.0,Wants,Blinkit
+2025-05-12,Bekano Navratan Mix Namkeen,Food and Snacks,50.0,200,gm,0.25,Wants,Blinkit
+2025-05-12,Karachi Bakery Osmania Biscuits,Food and Snacks,162.0,400,gm,0.405,Wants,Blinkit
+2025-05-12,Mosquito Killer,House,146.0,2,nos,73.0,Needs,Blinkit
+2025-05-12,Maida,Grocery,31.0,500,gm,0.062,Needs,Blinkit
+2025-05-12,Chowmein Noodles,Food and Snacks,60.0,2,nos,30.0,Wants,Blinkit
+2025-05-12,Chakki Fresh Atta,Grocery,59.0,1000,gm,0.05901,Needs,Blinkit
+2025-05-12,Coconut Biscuit,Food and Snacks,24.0,143,gm,0.168,Wants,Blinkit
+2025-05-12,Cocoa Almonds Cookies Biscuit,Food and Snacks,220.0,180,gm,1.22,Wants,Blinkit
+2025-05-12,Soya Sauce,Grocery,52.0,210,gm,0.2476,Needs,Blinkit
+2025-05-12,LED Strip Enhancement,House,380.0,1,nos,380.0,Wants,
+2025-05-12,Electric bill,Bills,1300.0,1,nos,1300.0,Needs,tulip purple for the month of May
+2025-05-03,Driver Service,Driver,2500,1,nos,2500,Needs,N/A
+2025-05-05,Auto ride,Travel,164,1,nos,164,Needs,N/A
+2025-05-05,Auto ride,Travel,159,1,nos,164,Needs,N/A
+2025-05-09,Auto ride,Travel,170,1,nos,170.0,Needs,N/A
+2025-05-09,Auto Ride,Travel,159,1,nos,159.0,Needs,N/A
+2025-05-12,Home Loan Repayment,EMI,47000,1,nos,47000,Loan repayment,N/A
+2025-05-01,Swiggy,Food and Snacks,458,1,nos,458.0,Wants,N/A
+2025-05-01,meat,Meat and Egg,549,500,gm,1.098,Needs,N/A
+2025-05-02,Eggs,Meat and Egg,47,6,nos,7.83,Needs,N/A
+2025-05-02,Lijjat Papad,Food and Snacks,77,200,gm,0.385,Wants,N/A
+2025-05-02,Soda Water,Food and Snacks,20,750,ml,0.02667,Wants,N/A
+2025-05-02,Thumbs Up,Food and Snacks,45,750,ml,0.06,Wants,N/A
+2025-05-02,Paneer,Dairy,91,200,gm,0.455,Needs,N/A
+2025-05-09,Watermelon,Fruit and Vegetable,106,5000,gm,0.0212,Needs,N/A
+2025-05-09,Jamun,Fruit and Vegetable,162,250,gm,0.648,Needs,N/A
+2025-05-09,Mango,Fruit and Vegetable,80,360,gm,0.2222222222,Needs,N/A
+2025-05-09,Muskmelon,Fruit and Vegetable,45,1,nos,45.0,Needs,N/A
+2025-05-05,Mutual Fund,Savings,3500,1,nos,3500,Savings,N/A
+2025-05-05,mutual fund,Savings,3500,1,nos,3500,Savings,N/A
+2025-05-01,PPF,Savings,1000,1,nos,1000,Savings,N/A
+2025-05-13,Ola ride,Travel,164,1,nos,164.0,Wants,home to office
+2025-05-13,Ola ride,Travel,159,1,nos,159.0,Wants,office to home
+2025-05-13,Breakfast,Food and Snacks,25,1,nos,25.0,Needs,poha
+2025-05-13,Tea,Food and Snacks,15,1,nos,15.0,Wants,tea
+2025-05-13,Boiled Eggs,Meat and Egg,30,2,nos,15.0,Needs,N/A
