@@ -20,7 +20,7 @@ st.set_page_config(layout="wide")
 def load_data():
   return pd.read_csv(FILE_PATH)
 
-FILE_PATH = '/content/drive/MyDrive/Saarthi/Kuber/Saarthi_Kuber.csv'
+FILE_PATH = 'Saarthi_Kuber.csv'
 
 # Initialize OpenAI API key and passcode
 i_key = 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426H'
