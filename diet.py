@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import ast
 
-def run():
+def run(i_passcode):
     # Set OpenAI API key in environment
     # Combine base key with the user-provided passcode
     i_key = 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426H'
