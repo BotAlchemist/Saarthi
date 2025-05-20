@@ -167,13 +167,13 @@ else:
     i_page_option= st.selectbox('Page', ['Kuber', 'Reminder'])
 
     if i_page_option== 'Kuber':
-        i_menu_option= st.sidebar.selectbox('Menu', ['Add expense',  'Analyse' , 'Edit sheet'])
-  
-        if i_menu_option == 'Add expense':
+      i_menu_option= st.sidebar.selectbox('Menu', ['Add expense',  'Analyse' , 'Edit sheet'])
+    
+      if i_menu_option == 'Add expense':
           st.markdown("### Say something!")
           audio = audiorecorder("Click to record", "Click to stop recording")
           manual_text = st.text_input("Or type your expense:", placeholder="e.g., Bought mangoes 2kg 240Rs")
-
+    
           if manual_text.strip():
               i_context = manual_text
           elif len(audio) > 2000:  # ensure audio is not too short (~0.1s)
@@ -181,14 +181,14 @@ else:
           else:
               st.warning("Audio too short or no input provided. Please enter text or record longer audio.")
               st.stop()
-
+    
           st.divider()
           st.write(i_context)
-
+    
           i_final_prompt = '''Context: {}'''.format(i_context)
           i_final_prompt += '''Date: {}'''.format(datetime.now())
           i_final_prompt += i_prompt
-
+    
           i_chat_prompt = '''You are a helpful financial advisor/assistant for Indian household. Only generate the json object and not any explanation. '''
           response = client.chat.completions.create(
               model="gpt-4o",
@@ -197,13 +197,13 @@ else:
                   {"role": "user", "content": i_final_prompt}
               ]
           )
-
+    
           i_response = str(response.choices[0].message.content).replace('''```json''', '').replace('''```''', '')
           new_expense = json.loads(i_response)
-
+    
           editable_expense = {}
           current_date = datetime.now().date()
-
+    
           for key, value in new_expense.items():
               if key == 'Date':
                   editable_expense[key] = st.date_input(f"{key}:", value=current_date)
@@ -219,17 +219,17 @@ else:
                   if value not in type_list:
                       type_list.append(value)
                   editable_expense[key] = st.selectbox(f"{key}:", options=type_list, index=type_list.index(value))
-
+    
           st.write('Extracted values')
           editable_expense_record = pd.DataFrame([editable_expense])
           st.write(editable_expense_record)
-
+    
           if st.button('Add Expense'):
               data_to_add = editable_expense.copy()
               data_to_add["Date"] = data_to_add["Date"].strftime('%d-%m-%Y')
               db.collection("expenses").add(data_to_add)
               ai_voice("'Expense Added!'")
-  
+
       elif i_menu_option== 'Edit sheet':
         docs = db.collection("expenses").stream()
         data = []
