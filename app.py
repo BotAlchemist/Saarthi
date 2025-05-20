@@ -18,6 +18,8 @@ from datetime import datetime, date, time, timedelta
 from dateutil.parser import parse
 import firebase_admin
 from firebase_admin import credentials, firestore
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Set Streamlit page configuration
 st.set_page_config(
