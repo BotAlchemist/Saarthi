@@ -164,7 +164,7 @@ else:
     os.environ["OPENAI_API_KEY"] = i_key
     client = OpenAI()
 
-    i_page_option= st.selectbox('Page', ['Kuber', 'Reminder'])
+    i_page_option= st.selectbox('Page', ['Kuber', 'Reminder', 'Diet'])
 
     if i_page_option== 'Kuber':
       i_menu_option= st.sidebar.selectbox('Menu', ['Add expense',  'Analyse' , 'Edit sheet'])
@@ -352,6 +352,11 @@ else:
 
             st.markdown("---")
             st.caption("Built with ❤️ by SAARTHI-Kuber")
+
+#_____________________________________ DIET PAGE ____________________________
+    elif  i_page_option== 'Diet':
+        import diet  # A diet.py file
+        diet.run()
 
 #_______________________________________ REMINDER PAGE ___________________________________
 
