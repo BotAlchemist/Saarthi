@@ -8,7 +8,7 @@ import ast
 def run(i_passcode):
     # Set OpenAI API key in environment
     # Combine base key with the user-provided passcode
-    i_key = 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426H'
+    i_key = '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'
     i_key = i_key + i_passcode
 
     # Set OpenAI API key in environment
