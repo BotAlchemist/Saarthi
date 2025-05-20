@@ -20,11 +20,15 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Set Streamlit page configuration
-st.set_page_config(layout="wide")
+st.set_page_config(
+    layout="wide",
+    page_title="Saarthi - Kuber",
+    page_icon="🪙"  # You can use emojis like 🪙, 📊, 💵, 📉, etc.
+)
 
-@st.cache_data(show_spinner=False)
-def load_data():
-  return pd.read_csv(FILE_PATH)
+# @st.cache_data(show_spinner=False)
+# def load_data():
+#   return pd.read_csv(FILE_PATH)
 
 # FILE_PATH = 'Saarthi_Kuber.csv'
 
