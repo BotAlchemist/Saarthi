@@ -6,11 +6,15 @@ import matplotlib.pyplot as plt
 import ast
 
 def run():
-    ### Set OpenAI API key in environment
-    ##os.environ["OPENAI_API_KEY"] = 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426HP'
-    ##
-    ### Set up page
-    ##st.set_page_config(page_title="Saarthi Diet Planner", page_icon="🍱", layout="wide")
+    # Set OpenAI API key in environment
+    # Combine base key with the user-provided passcode
+    i_key = i_key + i_passcode
+
+    # Set OpenAI API key in environment
+    os.environ["OPENAI_API_KEY"] = i_key
+    client = OpenAI()
+
+
 
     # Page selector
     page = st.sidebar.radio("Select Page", ["Planner", "Tracker"])
