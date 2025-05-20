@@ -340,7 +340,7 @@ else:
           firebase_admin.initialize_app(cred)
       db = firestore.client()
       
-      CATEGORIES = ['Bills', 'Maintenance', 'Housing', 'Financial', 'Personal']
+      CATEGORIES = ['Bills', 'Maintenance', 'Housing', 'Rent', 'Insurance', 'Financial', 'Personal', 'Appointment']
       FREQUENCIES = ['One-time', 'Daily', 'Weekly', 'Every 28 Days', 'Monthly', 'Yearly']
       
       # --- Data Loading / Persistence ---
