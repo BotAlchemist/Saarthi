@@ -336,7 +336,7 @@ else:
     elif  i_page_option== 'Reminder':
       # --- Firebase Setup ---
       if not firebase_admin._apps:
-          cred = credentials.Certificate(st.secrets["firebase_credentials"])
+          cred = credentials.Certificate(dict(st.secrets["firebase_credentials"]))
           firebase_admin.initialize_app(cred)
       db = firestore.client()
       
