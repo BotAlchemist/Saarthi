@@ -26,11 +26,27 @@ st.set_page_config(layout="wide")
 def load_data():
   return pd.read_csv(FILE_PATH)
 
-FILE_PATH = 'Saarthi_Kuber.csv'
+# FILE_PATH = 'Saarthi_Kuber.csv'
 
 # Initialize OpenAI API key and passcode
 i_key = 'sk-proj-gUo7UuBh5llI5FHenFKjT3BlbkFJ01MwxYNzCtIQD9t426H'
 i_passcode = st.sidebar.text_input("OpenAI key", type='password')
+
+# --------------------------- Firebase Setup ---
+if not firebase_admin._apps:
+    cred = credentials.Certificate(dict(st.secrets["firebase_credentials"]))
+    firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+
+# --- Load Data from Firestore ---
+def load_kuber_data():
+    docs = db.collection("expenses").stream()
+    data = [doc.to_dict() for doc in docs]
+    df = pd.DataFrame(data)
+    if 'Date' in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors='coerce')
+    return df
 
 # Define categories and types for expenses
 category_list = ['Fruit and Vegetable', 'Dairy', 'Meat and Egg', 'Grocery', 'Gas', 'Driver', 'Bills', 'House', 'EMI', 'Entertainment', 'Travel', 'Food and Snacks', 'Healthcare', 'Education', 'Personal Care', 'Savings', 'Miscellaneous']
@@ -146,199 +162,147 @@ else:
 
     if i_page_option== 'Kuber':
       i_menu_option= st.sidebar.selectbox('Menu', ['Add expense',  'Analyse' , 'Edit sheet'])
-
-      #---------------------------- Add Expense option -----------------------------
+  
       if i_menu_option== 'Add expense':
-        # Streamlit UI for recording audio
-        st.markdown("### Say something!")
-        audio = audiorecorder("Click to record", "Click to stop recording")
-
-        # Process audio if recorded
-        if len(audio) > 0:
-            i_context= fetch_audio(audio)
-
-            st.divider()
-
-            # Display transcribed text
-            st.write(i_context)
-
-            # Prepare the context and prompt for OpenAI API
-
-            i_final_prompt = '''Context: {}'''.format(i_context)
-            i_final_prompt += '''Date: {}'''.format(datetime.now())
-            i_final_prompt += i_prompt
-
-            # Define chat prompt for OpenAI API
-            i_chat_prompt = '''You are a helpful financial advisor/assistant for Indian household. Only generate the json object and not any explanation. '''
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": i_chat_prompt},
-                    {"role": "user", "content": i_final_prompt}
-                ]
-            )
-
-            # Extract and clean the response
-            i_response = str(response.choices[0].message.content).replace('''```json''', '').replace('''```''', '')
-            new_expense = json.loads(i_response)
-
-            # Create editable fields for each key in the dictionary
-            editable_expense = {}
-
-            # Get the current date
-            current_date = datetime.now().date()
-
-            # Create input fields for each key in the expense dictionary
-            for key, value in new_expense.items():
-                if key == 'Date':
-                    editable_expense[key] = st.date_input(f"{key}:", value=current_date)
-                elif key in ['Item', 'Unit', 'Comment']:
-                    editable_expense[key] = st.text_input(f"{key}:", value=value)
-                elif key == 'Category':
-                    if value not in category_list:
-                        category_list.append(value)
-                    editable_expense[key] = st.selectbox(f"{key}:", options=category_list, index=category_list.index(value))
-                elif key in ['Amount', 'Quantity', 'CostPerQuantity']:
-                    editable_expense[key] = st.number_input(f"{key}:", value=value)
-                elif key == 'Type':
-                    if value not in type_list:
-                        type_list.append(value)
-                    editable_expense[key] = st.selectbox(f"{key}:", options=type_list, index=type_list.index(value))
-                else:
-                    pass
-
-            # Display the editable dictionary
-            st.write('Extracted values')
-
-            # Convert the editable dictionary to a DataFrame
-            editable_expense_record = pd.DataFrame([editable_expense])
-            st.write(editable_expense_record)
-
-            # Button to add expense to CSV
-            if st.button('Add Expense'):
-                # Append the new record DataFrame to the CSV
-                editable_expense_record.to_csv(FILE_PATH, mode='a', header=False, index=False)
-                #st.success('Expense Added!')
-                ai_voice("'Expense Added!'")
-
-      #---------------------------- Edit sheet option -----------------------------
+          st.markdown("### Say something!")
+          audio = audiorecorder("Click to record", "Click to stop recording")
+  
+          if len(audio) > 0:
+              i_context= fetch_audio(audio)
+              st.divider()
+              st.write(i_context)
+  
+              i_final_prompt = '''Context: {}'''.format(i_context)
+              i_final_prompt += '''Date: {}'''.format(datetime.now())
+              i_final_prompt += i_prompt
+  
+              i_chat_prompt = '''You are a helpful financial advisor/assistant for Indian household. Only generate the json object and not any explanation. '''
+              response = client.chat.completions.create(
+                  model="gpt-4o",
+                  messages=[
+                      {"role": "system", "content": i_chat_prompt},
+                      {"role": "user", "content": i_final_prompt}
+                  ]
+              )
+  
+              i_response = str(response.choices[0].message.content).replace('''```json''', '').replace('''```''', '')
+              new_expense = json.loads(i_response)
+  
+              editable_expense = {}
+              current_date = datetime.now().date()
+  
+              for key, value in new_expense.items():
+                  if key == 'Date':
+                      editable_expense[key] = st.date_input(f"{key}:", value=current_date)
+                  elif key in ['Item', 'Unit', 'Comment']:
+                      editable_expense[key] = st.text_input(f"{key}:", value=value)
+                  elif key == 'Category':
+                      if value not in category_list:
+                          category_list.append(value)
+                      editable_expense[key] = st.selectbox(f"{key}:", options=category_list, index=category_list.index(value))
+                  elif key in ['Amount', 'Quantity', 'CostPerQuantity']:
+                      editable_expense[key] = st.number_input(f"{key}:", value=value)
+                  elif key == 'Type':
+                      if value not in type_list:
+                          type_list.append(value)
+                      editable_expense[key] = st.selectbox(f"{key}:", options=type_list, index=type_list.index(value))
+  
+              st.write('Extracted values')
+              editable_expense_record = pd.DataFrame([editable_expense])
+              st.write(editable_expense_record)
+  
+              if st.button('Add Expense'):
+                  data_to_add = editable_expense.copy()
+                  data_to_add["Date"] = data_to_add["Date"].strftime('%d-%m-%Y')
+                  db.collection("expenses").add(data_to_add)
+                  ai_voice("'Expense Added!'")
+  
       elif i_menu_option== 'Edit sheet':
-        df= pd.read_csv(FILE_PATH)
-        #st.write(df)
-
-        # Show editable table
-        edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
-
-        # Button to save changes
-        if st.button("Save Changes to CSV"):
-            edited_df.to_csv(FILE_PATH, index=False)
-            st.success("Changes saved successfully!")
-
-      #---------------------------- Analyse option -----------------------------
+          df = load_kuber_data()
+          edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
+  
+          if st.button("Save Changes"):
+              st.warning("Firestore does not support bulk update directly via data_editor.")
+              st.info("To support editing, build a per-record editor or download-update-upload mechanism.")
+  
       elif i_menu_option== 'Analyse':
-
-        if st.button("🔄 Refresh Data"):
-          st.cache_data.clear()
-
-
-
-
-        import matplotlib.pyplot as plt
-        import seaborn as sns
-
-        # Load your expense data
-        df = load_data()
-        df["Date"] = pd.to_datetime(df["Date"])
-
-
-        st.markdown("Analyze your expenses deeply with smart visuals and KPIs 👇")
-
-        # ---- FILTERS ----
-        st.sidebar.header("🔎 Filter Your Data")
-
-        # Category filter
-        all_categories = df["Category"].unique().tolist()
-        selected_categories = st.sidebar.multiselect("Select Category", options=all_categories, default=all_categories)
-
-        # # Date filter
-        # min_date = df["Date"].min()
-        # max_date = df["Date"].max()
-        # selected_date = st.sidebar.slider("Select Date Range", min_value=min_date, max_value=max_date, value=(min_date, max_date))
-
-        # Apply filters
-        filtered_df = df[df["Category"].isin(selected_categories)]
-
-        # ---- KPI SECTION ----
-        st.subheader("📌 Key Performance Indicators")
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            st.metric("Total Expense", f"₹ {filtered_df['Amount'].sum():,.2f}")
-        with col2:
-            st.metric("Average Daily Spend", f"₹ {filtered_df.groupby('Date')['Amount'].sum().mean():.2f}")
-        with col3:
-            top_cat = filtered_df.groupby("Category")["Amount"].sum()
-            st.metric("Top Spending Category", top_cat.idxmax() if not top_cat.empty else "N/A")
-        with col4:
-            needs_sum = filtered_df[filtered_df["Type"] == "Needs"]["Amount"].sum()
-            wants_sum = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum() if "Wants" in filtered_df["Type"].unique() else 0
-            st.metric("Needs vs Wants (₹)", f"{needs_sum:.0f} / {wants_sum:.0f}")
-
-        # ---- TIME TREND ----
-        st.subheader("📈 Monthly Spending Trend")
-        df_monthly = filtered_df.groupby(filtered_df["Date"].dt.to_period("M"))['Amount'].sum().reset_index()
-        df_monthly['Date'] = df_monthly['Date'].dt.to_timestamp()
-        st.line_chart(df_monthly.set_index("Date"))
-
-        # ---- CATEGORY BREAKDOWN ----
-        st.subheader("📊 Spending by Category")
-        category_totals = filtered_df.groupby("Category")["Amount"].sum().sort_values(ascending=False)
-        st.bar_chart(category_totals)
-
-        # ---- TYPE BY MONTH ----
-        st.subheader("📆 Monthly Expense by Type")
-        df_type_month = filtered_df.copy()
-        df_type_month["Month"] = df_type_month["Date"].dt.to_period("M").dt.to_timestamp()
-        df_grouped = df_type_month.groupby(["Month", "Type"])["Amount"].sum().unstack().fillna(0)
-        st.bar_chart(df_grouped)
-
-        # ---- TOP ITEMS ----
-        st.subheader("🥇 Top 10 Items by Spend")
-        top_items = filtered_df.groupby("Item")["Amount"].sum().sort_values(ascending=False).head(10)
-        st.bar_chart(top_items)
-
-        # ---- COST EFFICIENCY ----
-        st.subheader("⚖️ Cost Efficiency (₹ per Unit)")
-        avg_cost = filtered_df.groupby("Item")["CostPerQuantity"].mean().sort_values(ascending=False)
-        fig1, ax1 = plt.subplots(figsize=(8, 4))
-        sns.barplot(x=avg_cost.values, y=avg_cost.index, ax=ax1)
-        ax1.set_xlabel("₹ per Unit")
-        st.pyplot(fig1)
-
-        # ---- NEEDS VS WANTS ----
-        st.subheader("🔍 Needs vs Wants Spending")
-        type_summary = filtered_df.groupby("Type")["Amount"].sum()
-        st.bar_chart(type_summary)
-
-        # ---- WEEKDAY SPENDING ----
-        st.subheader("📅 Average Spending by Day of Week")
-        filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
-        weekday_avg = filtered_df.groupby("Weekday")["Amount"].mean().reindex(
-            ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-        st.bar_chart(weekday_avg)
-
-
-        st.markdown("---")
-        st.caption("Built with ❤️ by SAARTHI-Kuber")
+          if st.button("🔄 Refresh Data"):
+              st.cache_data.clear()
+  
+          import matplotlib.pyplot as plt
+          import seaborn as sns
+  
+          df = load_kuber_data()
+  
+          if df.empty:
+              st.warning("No expense data found in Firestore.")
+          else:
+              st.markdown("Analyze your expenses deeply with smart visuals and KPIs 👇")
+  
+              st.sidebar.header("🔎 Filter Your Data")
+              all_categories = df["Category"].dropna().unique().tolist()
+              selected_categories = st.sidebar.multiselect("Select Category", options=all_categories, default=all_categories)
+  
+              filtered_df = df[df["Category"].isin(selected_categories)]
+  
+              st.subheader("📌 Key Performance Indicators")
+              col1, col2, col3, col4 = st.columns(4)
+  
+              with col1:
+                  st.metric("Total Expense", f"₹ {filtered_df['Amount'].sum():,.2f}")
+              with col2:
+                  st.metric("Average Daily Spend", f"₹ {filtered_df.groupby('Date')['Amount'].sum().mean():.2f}")
+              with col3:
+                  top_cat = filtered_df.groupby("Category")["Amount"].sum()
+                  st.metric("Top Spending Category", top_cat.idxmax() if not top_cat.empty else "N/A")
+              with col4:
+                  needs_sum = filtered_df[filtered_df["Type"] == "Needs"]["Amount"].sum()
+                  wants_sum = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum() if "Wants" in filtered_df["Type"].unique() else 0
+                  st.metric("Needs vs Wants (₹)", f"{needs_sum:.0f} / {wants_sum:.0f}")
+  
+              st.subheader("📈 Monthly Spending Trend")
+              df_monthly = filtered_df.groupby(filtered_df["Date"].dt.to_period("M"))['Amount'].sum().reset_index()
+              df_monthly['Date'] = df_monthly['Date'].dt.to_timestamp()
+              st.line_chart(df_monthly.set_index("Date"))
+  
+              st.subheader("📊 Spending by Category")
+              category_totals = filtered_df.groupby("Category")["Amount"].sum().sort_values(ascending=False)
+              st.bar_chart(category_totals)
+  
+              st.subheader("📆 Monthly Expense by Type")
+              df_type_month = filtered_df.copy()
+              df_type_month["Month"] = df_type_month["Date"].dt.to_period("M").dt.to_timestamp()
+              df_grouped = df_type_month.groupby(["Month", "Type"])["Amount"].sum().unstack().fillna(0)
+              st.bar_chart(df_grouped)
+  
+              st.subheader("🥇 Top 10 Items by Spend")
+              top_items = filtered_df.groupby("Item")["Amount"].sum().sort_values(ascending=False).head(10)
+              st.bar_chart(top_items)
+  
+              st.subheader("⚖️ Cost Efficiency (₹ per Unit)")
+              avg_cost = filtered_df.groupby("Item")["CostPerQuantity"].mean().sort_values(ascending=False)
+              fig1, ax1 = plt.subplots(figsize=(8, 4))
+              sns.barplot(x=avg_cost.values, y=avg_cost.index, ax=ax1)
+              ax1.set_xlabel("₹ per Unit")
+              st.pyplot(fig1)
+  
+              st.subheader("🔍 Needs vs Wants Spending")
+              type_summary = filtered_df.groupby("Type")["Amount"].sum()
+              st.bar_chart(type_summary)
+  
+              st.subheader("📅 Average Spending by Day of Week")
+              filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
+              weekday_avg = filtered_df.groupby("Weekday")["Amount"].mean().reindex(
+                  ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+              st.bar_chart(weekday_avg)
+  
+              st.markdown("---")
+              st.caption("Built with ❤️ by SAARTHI-Kuber")
 
 #_______________________________________ REMINDER PAGE ___________________________________
 
     elif  i_page_option== 'Reminder':
-      # --- Firebase Setup ---
-      if not firebase_admin._apps:
-          cred = credentials.Certificate(dict(st.secrets["firebase_credentials"]))
-          firebase_admin.initialize_app(cred)
-      db = firestore.client()
+      
       
       CATEGORIES = ['Bills', 'Maintenance', 'Housing', 'Rent', 'Insurance', 'Financial', 'Personal', 'Appointment']
       FREQUENCIES = ['One-time', 'Daily', 'Weekly', 'Every 28 Days', 'Monthly', 'Yearly']
