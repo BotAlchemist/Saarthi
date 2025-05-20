@@ -334,7 +334,7 @@ else:
     elif  i_page_option== 'Reminder':
       # --- Constants & Paths ---
       DB_PATH = "reminders.csv"
-      CATEGORIES = ['Bills', 'Maintenance', 'Housing', 'Financial', 'Personal']
+      CATEGORIES = ['Bills', 'Maintenance', 'EMI', 'Rent', 'Financial', 'Personal', 'Insurance', 'Appointment']
       # Added 28-day interval option
       FREQUENCIES = ['One-time', 'Daily', 'Weekly', 'Every 28 Days', 'Monthly', 'Yearly']
 
