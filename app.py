@@ -318,11 +318,7 @@ else:
             ax2.legend(loc="upper right")
             st.pyplot(fig2)
 
-            st.subheader("📅 Average Spending by Day of Week")
-            filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
-            weekday_avg = filtered_df.groupby("Weekday")["Amount"].mean().reindex(
-                ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-            st.bar_chart(weekday_avg)
+           
 
             st.markdown("---")
             st.caption("Built with ❤️ by SAARTHI-Kuber")
