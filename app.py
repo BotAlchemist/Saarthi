@@ -356,7 +356,7 @@ else:
 #_____________________________________ DIET PAGE ____________________________
     elif  i_page_option== 'Diet':
         import diet  # A diet.py file
-        diet.run()
+        diet.run(i_passcode)
 
 #_______________________________________ REMINDER PAGE ___________________________________
 
