@@ -388,9 +388,7 @@ else:
                   return current + timedelta(days=365)
           return None
       
-      # --- UI Layout ---
-      st.set_page_config(page_title="SmartReminder", layout='wide')
-      st.title("📝 SmartReminder")
+     
       
       # Sidebar: Add Reminder Form
       st.sidebar.header("Add New Reminder")
