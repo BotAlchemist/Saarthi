@@ -224,12 +224,35 @@ else:
                   ai_voice("'Expense Added!'")
   
       elif i_menu_option== 'Edit sheet':
-          df = load_kuber_data()
-          edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
-  
-          if st.button("Save Changes"):
-              st.warning("Firestore does not support bulk update directly via data_editor.")
-              st.info("To support editing, build a per-record editor or download-update-upload mechanism.")
+        docs = db.collection("expenses").stream()
+        data = []
+        for doc in docs:
+            record = doc.to_dict()
+            record["doc_id"] = doc.id
+            data.append(record)
+        df = pd.DataFrame(data)
+
+        if 'Date' in df.columns:
+            df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors='coerce')
+
+        edited_df = st.data_editor(df.drop(columns=["doc_id"]), num_rows="dynamic", use_container_width=True)
+
+        if st.button("Save Changes"):
+            for idx, row in edited_df.iterrows():
+                original = df.loc[idx]
+                doc_id = original["doc_id"]
+
+                updated_data = {}
+                for col in edited_df.columns:
+                    if not pd.isna(row[col]) and row[col] != original[col]:
+                        value = row[col]
+                        if isinstance(value, pd.Timestamp):
+                            value = value.strftime('%d-%m-%Y')
+                        updated_data[col] = value
+
+                if updated_data:
+                    db.collection("expenses").document(doc_id).update(updated_data)
+            st.success("Changes saved to Firestore!")
   
       elif i_menu_option== 'Analyse':
         if st.button("🔄 Refresh Data"):
