@@ -298,16 +298,24 @@ else:
             type_summary = filtered_df.groupby("Type")["Amount"].sum()
             st.bar_chart(type_summary)
 
-            st.subheader("📉 Wants Budget Utilization Pie Chart")
-            income = 90000
+            st.subheader("📉 Wants Budget Utilization")
+            income = st.number_input("Enter your monthly income (₹):", min_value=1000, max_value=1000000, value=90000, step=500)
             wants_budget = 0.3 * income
             spent_on_wants = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum()
             remaining_wants = max(wants_budget - spent_on_wants, 0)
-            pie_data = pd.Series({"Spent": spent_on_wants, "Remaining": remaining_wants})
-            fig2, ax2 = plt.subplots()
-            pie_data.plot.pie(autopct=lambda p: f'{p:.1f}% ₹ {p * pie_data.sum() / 100:.0f}', ax=ax2, startangle=90)
-            ax2.set_ylabel("")
-            ax2.set_title("Wants Budget Usage")
+            
+            st.markdown(f"**Wants Budget (30%):** ₹{wants_budget:,.0f}")
+            
+            col1, col2 = st.columns(2)
+            col1.metric("Spent on Wants", f"₹{spent_on_wants:,.0f}")
+            col2.metric("Remaining Wants Budget", f"₹{remaining_wants:,.0f}")
+            
+            fig2, ax2 = plt.subplots(figsize=(5, 0.5))
+            ax2.barh(["Wants Budget"], [spent_on_wants], color='salmon', label="Spent")
+            ax2.barh(["Wants Budget"], [remaining_wants], left=[spent_on_wants], color='lightgreen', label="Remaining")
+            ax2.set_xlim(0, wants_budget)
+            ax2.set_xlabel("Amount (₹)")
+            ax2.legend(loc="upper right")
             st.pyplot(fig2)
 
             st.subheader("📅 Average Spending by Day of Week")
