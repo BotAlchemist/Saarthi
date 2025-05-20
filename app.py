@@ -307,9 +307,11 @@ else:
                 pie_data = pd.Series({"Spent": spent_on_wants, "Remaining": remaining_wants})
                 st.pyplot(fig2, ax2 = plt.subplots()
                 pie_data.plot.pie(autopct="%1.1f%%", ax=ax2, startangle=90)
+                fig2, ax2 = plt.subplots()
+                pie_data.plot.pie(autopct="%1.1f%%", ax=ax2, startangle=90)
                 ax2.set_ylabel("")
                 ax2.set_title("Wants Budget Usage")
-                st.pyplot(fig2))
+                st.pyplot(fig2)
     
                 st.subheader("📅 Average Spending by Day of Week")
                 filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
