@@ -1,4 +1,4 @@
-%%writefile saarthi.py
+
 
 # Import necessary libraries
 import streamlit as st  # Web App framework
