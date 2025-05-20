@@ -167,22 +167,21 @@ else:
     i_page_option= st.selectbox('Page', ['Kuber', 'Reminder'])
 
     if i_page_option== 'Kuber':
-      i_menu_option= st.sidebar.selectbox('Menu', ['Add expense',  'Analyse' , 'Edit sheet'])
+        i_menu_option= st.sidebar.selectbox('Menu', ['Add expense',  'Analyse' , 'Edit sheet'])
   
-      if i_menu_option == 'Add expense':
-        st.markdown("### Say something!")
-        audio = audiorecorder("Click to record", "Click to stop recording")
-        manual_text = st.text_input("Or type your expense:", placeholder="e.g., Bought mangoes 2kg 240Rs")
+        if i_menu_option == 'Add expense':
+          st.markdown("### Say something!")
+          audio = audiorecorder("Click to record", "Click to stop recording")
+          manual_text = st.text_input("Or type your expense:", placeholder="e.g., Bought mangoes 2kg 240Rs")
 
-        if len(audio) > 0 or manual_text.strip():
           if manual_text.strip():
               i_context = manual_text
-          else:
+          elif len(audio) > 2000:  # ensure audio is not too short (~0.1s)
               i_context = fetch_audio(audio)
+          else:
+              st.warning("Audio too short or no input provided. Please enter text or record longer audio.")
+              st.stop()
 
-          st.divider()
-          st.write(i_context)
-          i_context= fetch_audio(audio)
           st.divider()
           st.write(i_context)
 
