@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta, date, time
 from dateutil.parser import parse
-from google.cloud import firestore  # Assuming you're using Firestore for DB
+# from google.cloud import firestore  # Assuming you're using Firestore for DB
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 # Initialize Firestore DB
 db = firestore.Client()
