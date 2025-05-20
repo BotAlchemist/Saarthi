@@ -3,3 +3,4 @@ streamlit
 streamlit-audiorecorder
 matplotlib>=3.5.0
 seaborn>=0.11.0
+firebase-admin
