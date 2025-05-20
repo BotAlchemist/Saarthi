@@ -305,7 +305,7 @@ else:
             remaining_wants = max(wants_budget - spent_on_wants, 0)
             pie_data = pd.Series({"Spent": spent_on_wants, "Remaining": remaining_wants})
             fig2, ax2 = plt.subplots()
-            pie_data.plot.pie(autopct="%1.1f%%", ax=ax2, startangle=90)
+            pie_data.plot.pie(autopct=lambda p: f'{p:.1f}% ₹ {p * pie_data.sum() / 100:.0f}', ax=ax2, startangle=90)
             ax2.set_ylabel("")
             ax2.set_title("Wants Budget Usage")
             st.pyplot(fig2)
