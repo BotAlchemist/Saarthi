@@ -16,6 +16,8 @@ from audiorecorder import audiorecorder  # Audio recording
 #from datetime import datetime  # Date and time operations
 from datetime import datetime, date, time, timedelta
 from dateutil.parser import parse
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 # Set Streamlit page configuration
 st.set_page_config(layout="wide")
@@ -332,39 +334,44 @@ else:
 #_______________________________________ REMINDER PAGE ___________________________________
 
     elif  i_page_option== 'Reminder':
-      # --- Constants & Paths ---
-      DB_PATH = "reminders.csv"
-      CATEGORIES = ['Bills', 'Maintenance', 'EMI', 'Rent', 'Financial', 'Personal', 'Insurance', 'Appointment']
-      # Added 28-day interval option
+      # --- Firebase Setup ---
+      if not firebase_admin._apps:
+          cred = credentials.Certificate(st.secrets["firebase_credentials"])
+          firebase_admin.initialize_app(cred)
+      db = firestore.client()
+      
+      CATEGORIES = ['Bills', 'Maintenance', 'Housing', 'Financial', 'Personal']
       FREQUENCIES = ['One-time', 'Daily', 'Weekly', 'Every 28 Days', 'Monthly', 'Yearly']
-
+      
       # --- Data Loading / Persistence ---
       def load_data():
-          if os.path.exists(DB_PATH):
-              df = pd.read_csv(DB_PATH)
-          else:
-              df = pd.DataFrame(columns=['title','due','category','frequency','completed'])
-          df['due'] = pd.to_datetime(df['due'], errors='coerce')
-          df['completed'] = df['completed'].astype(bool)
-          return df
-
-
-      def save_data(df: pd.DataFrame):
-          df.to_csv(DB_PATH, index=False)
-
+          reminders_ref = db.collection("reminders")
+          docs = reminders_ref.stream()
+          records = []
+          for doc in docs:
+              record = doc.to_dict()
+              record['id'] = doc.id
+              record['due'] = pd.to_datetime(record['due'])
+              records.append(record)
+          return pd.DataFrame(records)
+      
+      def save_reminder_to_db(title, due, category, frequency, completed=False):
+          db.collection("reminders").add({
+              'title': title,
+              'due': due.isoformat(),
+              'category': category,
+              'frequency': frequency,
+              'completed': completed
+          })
+      
+      def update_reminder_status(doc_id, completed=True):
+          db.collection("reminders").document(doc_id).update({'completed': completed})
+      
       # --- Helper Functions ---
       def add_reminder(title: str, due: datetime, category: str, frequency: str):
-          df = load_data()
-          new = pd.DataFrame([{ 'title': title,
-                                'due': due,
-                                'category': category,
-                                'frequency': frequency,
-                                'completed': False }])
-          df = pd.concat([df, new], ignore_index=True)
-          save_data(df)
+          save_reminder_to_db(title, due, category, frequency)
           st.success(f"Added {frequency} reminder: '{title}' @ {due}")
-
-
+      
       def next_due(current: datetime, frequency: str):
           if frequency == 'Daily':
               return current + timedelta(days=1)
@@ -380,10 +387,11 @@ else:
               except:
                   return current + timedelta(days=365)
           return None
-
-     
       
-
+      # --- UI Layout ---
+      st.set_page_config(page_title="SmartReminder", layout='wide')
+      st.title("📝 SmartReminder")
+      
       # Sidebar: Add Reminder Form
       st.sidebar.header("Add New Reminder")
       with st.sidebar.form(key='add_form'):
@@ -399,36 +407,34 @@ else:
               except:
                   due_dt = datetime.combine(dt, tm)
               add_reminder(text, due_dt, cat, freq)
-
+      
       # Load DataFrame
-
       df = load_data()
-
+      
       # Define Tabs: Today, All, Upcoming
       tab1, tab2, tab3 = st.tabs(["Today's Agenda", "All Reminders", "Upcoming Reminders"])
-
+      
       # --- Today's Agenda ---
       with tab1:
           st.subheader("Due Today")
           today = datetime.now().date()
           todays = df[(df['due'].dt.date == today) & (~df['completed'])].sort_values('due')
           if not todays.empty:
-              for idx, row in todays.iterrows():
+              for _, row in todays.iterrows():
                   col1, col2 = st.columns([5,1])
                   with col1:
                       time_str = row['due'].strftime('%H:%M') if pd.notna(row['due']) else 'Unknown'
                       st.markdown(f"**{row['title']}** [{row['frequency']}] – {time_str}")
                   with col2:
-                      if st.button("Done", key=f"done_{idx}"):
-                          df.at[idx, 'completed'] = True
+                      if st.button("Done", key=f"done_{row['id']}"):
+                          update_reminder_status(row['id'], completed=True)
                           nxt = next_due(row['due'], row['frequency'])
                           if nxt:
                               add_reminder(row['title'], nxt, row['category'], row['frequency'])
-                          save_data(df)
                           st.success("Marked as done!")
           else:
               st.info("No reminders for today. 🎉")
-
+      
       # --- All Reminders ---
       with tab2:
           st.subheader("All Reminders")
@@ -447,14 +453,14 @@ else:
               df['frequency'].isin(freqs) &
               df['due_date'].between(start, end)
           ].sort_values(['due', 'completed'])
-
+      
           if not view.empty:
               table = view[['title', 'due', 'category', 'frequency', 'completed']].copy()
               table['due'] = table['due'].dt.strftime('%Y-%m-%d %H:%M')
               st.dataframe(table, use_container_width=True)
           else:
               st.info("No reminders match your filters.")
-
+      
       # --- Upcoming Reminders ---
       with tab3:
           st.subheader("Upcoming Reminders")
@@ -467,7 +473,7 @@ else:
               st.dataframe(table_up, use_container_width=True)
           else:
               st.info("No upcoming reminders!")
-
+      
       # Footer
       st.markdown("---")
       st.write("Built with ❤️ by SmartReminder")
