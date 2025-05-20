@@ -301,11 +301,15 @@ else:
     
                 st.subheader("📉 Wants Budget Utilization Pie Chart")
                 income = 90000
-                wants_budget = 0.3 * income  # Assuming 30% of income for wants
+                wants_budget = 0.1 * income  # Assuming 10% of income for wants
                 spent_on_wants = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum()
                 remaining_wants = max(wants_budget - spent_on_wants, 0)
                 pie_data = pd.Series({"Spent": spent_on_wants, "Remaining": remaining_wants})
-                st.pyplot(pie_data.plot.pie(autopct="%1.1f%%", figsize=(5, 5), title="Wants Budget Usage"))
+                st.pyplot(fig2, ax2 = plt.subplots()
+                pie_data.plot.pie(autopct="%1.1f%%", ax=ax2, startangle=90)
+                ax2.set_ylabel("")
+                ax2.set_title("Wants Budget Usage")
+                st.pyplot(fig2))
     
                 st.subheader("📅 Average Spending by Day of Week")
                 filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
