@@ -230,98 +230,92 @@ else:
               st.info("To support editing, build a per-record editor or download-update-upload mechanism.")
   
       elif i_menu_option== 'Analyse':
-          if st.button("🔄 Refresh Data"):
+        if st.button("🔄 Refresh Data"):
             st.cache_data.clear()
 
-            import matplotlib.pyplot as plt
-            import seaborn as sns
-    
-            df = load_kuber_data()
-    
-            if df.empty:
-                st.warning("No expense data found in Firestore.")
-            else:
-                st.markdown("Analyze your expenses deeply with smart visuals and KPIs 👇")
-    
-                st.sidebar.header("🔎 Filter Your Data")
-                all_categories = df["Category"].dropna().unique().tolist()
-                selected_categories = st.sidebar.multiselect("Select Category", options=all_categories, default=all_categories)
-    
-                filtered_df = df[df["Category"].isin(selected_categories)]
-    
-                st.subheader("📌 Key Performance Indicators")
-                col1, col2, col3, col4 = st.columns(4)
-    
-                with col1:
-                    st.metric("Total Expense", f"₹ {filtered_df['Amount'].sum():,.2f}")
-                with col2:
-                    st.metric("Average Daily Spend", f"₹ {filtered_df.groupby('Date')['Amount'].sum().mean():.2f}")
-                with col3:
-                    top_cat = filtered_df.groupby("Category")["Amount"].sum()
-                    st.metric("Top Spending Category", top_cat.idxmax() if not top_cat.empty else "N/A")
-                with col4:
-                    needs_sum = filtered_df[filtered_df["Type"] == "Needs"]["Amount"].sum()
-                    wants_sum = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum() if "Wants" in filtered_df["Type"].unique() else 0
-                    st.metric("Needs vs Wants (₹)", f"{needs_sum:.0f} / {wants_sum:.0f}")
-    
-                st.subheader("📈 Monthly Spending Trend")
-                df_monthly = filtered_df.groupby(filtered_df["Date"].dt.to_period("M"))['Amount'].sum().reset_index()
-                df_monthly['Date'] = df_monthly['Date'].dt.to_timestamp()
-                st.line_chart(df_monthly.set_index("Date"))
-    
-                st.subheader("📅 Last 30 Days Expense")
-                last_30 = filtered_df[filtered_df["Date"] >= (pd.Timestamp.now() - pd.Timedelta(days=30))]
-                last_30_daily = last_30.groupby("Date")["Amount"].sum().reset_index()
-                st.line_chart(last_30_daily.set_index("Date"))
-    
-                st.subheader("📊 Spending by Category")
-                category_totals = filtered_df.groupby("Category")["Amount"].sum().sort_values(ascending=False)
-                st.bar_chart(category_totals)
-    
-                st.subheader("📆 Monthly Expense by Type")
-                df_type_month = filtered_df.copy()
-                df_type_month["Month"] = df_type_month["Date"].dt.to_period("M").dt.to_timestamp()
-                df_grouped = df_type_month.groupby(["Month", "Type"])["Amount"].sum().unstack().fillna(0)
-                st.bar_chart(df_grouped)
-    
-                st.subheader("🥇 Top 10 Items by Spend")
-                top_items = filtered_df.groupby("Item")["Amount"].sum().sort_values(ascending=False).head(10)
-                st.bar_chart(top_items)
-    
-                st.subheader("⚖️ Cost Efficiency (₹ per Unit)")
-                avg_cost = filtered_df.groupby("Item")["CostPerQuantity"].mean().sort_values(ascending=False)
-                fig1, ax1 = plt.subplots(figsize=(8, 4))
-                sns.barplot(x=avg_cost.values, y=avg_cost.index, ax=ax1)
-                ax1.set_xlabel("₹ per Unit")
-                st.pyplot(fig1)
-    
-                st.subheader("🔍 Needs vs Wants Spending")
-                type_summary = filtered_df.groupby("Type")["Amount"].sum()
-                st.bar_chart(type_summary)
-    
-                st.subheader("📉 Wants Budget Utilization Pie Chart")
-                income = 90000
-                wants_budget = 0.1 * income  # Assuming 10% of income for wants
-                spent_on_wants = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum()
-                remaining_wants = max(wants_budget - spent_on_wants, 0)
-                pie_data = pd.Series({"Spent": spent_on_wants, "Remaining": remaining_wants})
-                st.pyplot(fig2, ax2 = plt.subplots()
-                pie_data.plot.pie(autopct="%1.1f%%", ax=ax2, startangle=90)
-                fig2, ax2 = plt.subplots()
-                pie_data.plot.pie(autopct="%1.1f%%", ax=ax2, startangle=90)
-                ax2.set_ylabel("")
-                ax2.set_title("Wants Budget Usage")
-                st.pyplot(fig2)
-    
-                st.subheader("📅 Average Spending by Day of Week")
-                filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
-                weekday_avg = filtered_df.groupby("Weekday")["Amount"].mean().reindex(
-                    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-                st.bar_chart(weekday_avg)
-    
-                st.markdown("---")
-                st.caption("Built with ❤️ by SAARTHI-Kuber")
+        df = load_kuber_data()
 
+        if df.empty:
+            st.warning("No expense data found in Firestore.")
+        else:
+            st.markdown("Analyze your expenses deeply with smart visuals and KPIs 👇")
+
+            st.sidebar.header("🔎 Filter Your Data")
+            all_categories = df["Category"].dropna().unique().tolist()
+            selected_categories = st.sidebar.multiselect("Select Category", options=all_categories, default=all_categories)
+
+            filtered_df = df[df["Category"].isin(selected_categories)]
+
+            st.subheader("📌 Key Performance Indicators")
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                st.metric("Total Expense", f"₹ {filtered_df['Amount'].sum():,.2f}")
+            with col2:
+                st.metric("Average Daily Spend", f"₹ {filtered_df.groupby('Date')['Amount'].sum().mean():.2f}")
+            with col3:
+                top_cat = filtered_df.groupby("Category")["Amount"].sum()
+                st.metric("Top Spending Category", top_cat.idxmax() if not top_cat.empty else "N/A")
+            with col4:
+                needs_sum = filtered_df[filtered_df["Type"] == "Needs"]["Amount"].sum()
+                wants_sum = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum() if "Wants" in filtered_df["Type"].unique() else 0
+                st.metric("Needs vs Wants (₹)", f"{needs_sum:.0f} / {wants_sum:.0f}")
+
+            st.subheader("📈 Monthly Spending Trend")
+            df_monthly = filtered_df.groupby(filtered_df["Date"].dt.to_period("M"))['Amount'].sum().reset_index()
+            df_monthly['Date'] = df_monthly['Date'].dt.to_timestamp()
+            st.line_chart(df_monthly.set_index("Date"))
+
+            st.subheader("📅 Last 30 Days Expense")
+            last_30 = filtered_df[filtered_df["Date"] >= (pd.Timestamp.now() - pd.Timedelta(days=30))]
+            last_30_daily = last_30.groupby("Date")["Amount"].sum().reset_index()
+            st.line_chart(last_30_daily.set_index("Date"))
+
+            st.subheader("📊 Spending by Category")
+            category_totals = filtered_df.groupby("Category")["Amount"].sum().sort_values(ascending=False)
+            st.bar_chart(category_totals)
+
+            st.subheader("📆 Monthly Expense by Type")
+            df_type_month = filtered_df.copy()
+            df_type_month["Month"] = df_type_month["Date"].dt.to_period("M").dt.to_timestamp()
+            df_grouped = df_type_month.groupby(["Month", "Type"])["Amount"].sum().unstack().fillna(0)
+            st.bar_chart(df_grouped)
+
+            st.subheader("🥇 Top 10 Items by Spend")
+            top_items = filtered_df.groupby("Item")["Amount"].sum().sort_values(ascending=False).head(10)
+            st.bar_chart(top_items)
+
+            st.subheader("⚖️ Cost Efficiency (₹ per Unit)")
+            avg_cost = filtered_df.groupby("Item")["CostPerQuantity"].mean().sort_values(ascending=False)
+            fig1, ax1 = plt.subplots(figsize=(8, 4))
+            sns.barplot(x=avg_cost.values, y=avg_cost.index, ax=ax1)
+            ax1.set_xlabel("₹ per Unit")
+            st.pyplot(fig1)
+
+            st.subheader("🔍 Needs vs Wants Spending")
+            type_summary = filtered_df.groupby("Type")["Amount"].sum()
+            st.bar_chart(type_summary)
+
+            st.subheader("📉 Wants Budget Utilization Pie Chart")
+            income = 90000
+            wants_budget = 0.3 * income
+            spent_on_wants = filtered_df[filtered_df["Type"] == "Wants"]["Amount"].sum()
+            remaining_wants = max(wants_budget - spent_on_wants, 0)
+            pie_data = pd.Series({"Spent": spent_on_wants, "Remaining": remaining_wants})
+            fig2, ax2 = plt.subplots()
+            pie_data.plot.pie(autopct="%1.1f%%", ax=ax2, startangle=90)
+            ax2.set_ylabel("")
+            ax2.set_title("Wants Budget Usage")
+            st.pyplot(fig2)
+
+            st.subheader("📅 Average Spending by Day of Week")
+            filtered_df["Weekday"] = filtered_df["Date"].dt.day_name()
+            weekday_avg = filtered_df.groupby("Weekday")["Amount"].mean().reindex(
+                ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+            st.bar_chart(weekday_avg)
+
+            st.markdown("---")
+            st.caption("Built with ❤️ by SAARTHI-Kuber")
 
 #_______________________________________ REMINDER PAGE ___________________________________
 
